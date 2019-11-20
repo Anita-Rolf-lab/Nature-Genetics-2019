@@ -1,0 +1,105 @@
+# at index 3 , there is mRNa level in nucleus of normal cell
+# at index 4 , There is mRNa level in Cytoplasma of normal cell
+# at index 5 ,there is mRNA level in Cytoplasm in Cancer Cell
+# at index 6 , there is mRNa level in normal cell's Nucleus 
+
+
+n=6;
+k=20;
+
+alpha= 15;  # mRNA transcription rate
+alpha_C= 10.0;  # mRNA transcription rate in cancer cell
+
+Exp_N = 35; # mRNA export rate from Nuclus 
+Exp_N_C= 7;
+
+Deg_N = 2.46; # Degraded rate in neculus
+Deg_N_C = 2.0; # Degraded rate in neculus
+
+Deg_C =1.40; # Degraded rate in Cytoplasm
+Deg_C_C =1.63; # Degraded rate in Cytoplasm
+
+ #alpha= alpha_C; Exp_N= Exp_N_C; Deg_N=Deg_N_C; Deg_C=Deg_C_C;
+# Deg_N=Deg_N_C; Deg_C=Deg_C_C;
+x= matrix(data=NA, nrow=n, ncol=k)
+for(j in 1:k){
+  x[1,j] = (j);
+}
+test = alpha / (Exp_N*Deg_N);
+print(test,"thesea re test values")
+
+temp_N=4;
+xtemp_C=1;
+temp_Level_nec=0;
+
+temp_level_cyto=0;
+temp_level_cyto_Cancer=0;
+for(j in 1:k){
+  if (j==1){
+    # mRNA level in Nucleus 
+    temp_Level_nec = alpha / (Exp_N*Deg_N);
+    x[2,j] =  temp_Level_nec;
+    
+    # mRNA level in normal cell Cytoplasm
+    x[4,j] = (Exp_N/Deg_C)* temp_Level_nec
+    
+    #mRNA level in Cancer Cytoplasm
+    x[5,j] =  (Exp_N_C/Deg_C_C)* alpha_C / (Exp_N_C*Deg_N_C);
+    
+    # Remainging Level of mRNA in neculus in case of cancer cells
+    x[6,j] = alpha_C / (Exp_N_C*Deg_N_C)- x[5,j] ;
+    
+    # Remainging Level of mRNA in neculus in case of normal cells
+    x[3,j] = temp_Level_nec- x[4,j] ;
+    
+  }
+  else {
+    
+    # mRNA level in Nucleus 
+    # temp_Level_nec= x[2,j-1]
+    # x[2,j] =  (temp_Level_nec+ alpha) / (Exp_N*Deg_N)
+    # Remainging Level of mRNA in neculus in case of cancer cells
+    #x[3,j] = temp_Level_nec- x[2,j] ;
+    # Remainging Level of mRNA in neculus in case of normal cells
+    #x[6,j] = temp_Level_nec- x[2,j] ;
+    
+    #-------------------------- mRNA level in Normal Cell's Cytoplasm----------------------------------------------------------
+    temp_Level_nec=0;
+    temp_Level_nec_old = x[3,j-1] # Nucleus mRMA level at before this stage (T-1)
+    temp_Level_nec= (temp_Level_nec_old+ alpha) / (Exp_N*Deg_N); # Current mRNA level in Neucleus 
+    x[3,j]= temp_Level_nec;  # Store current level mRNA in table
+    temp_level_cyto=0;
+    temp_level_cyto= x[4,j-1];  # get mRNA level at previous stage in Cytoplasm
+    x[4,j] = ((temp_level_cyto+Exp_N)/Deg_C)* x[3,j];  # calcuate the new level of mRNA in Cytoplasm
+    
+    
+    # The Remaining level of mRNA in Neclus now  substraction of level - Export 
+    
+    #-------------------------- mRNA level in cancer Cell's Cytoplasm----------------------------------------------------------
+    temp_Level_nec=0;
+    temp_Level_nec_old = x[6,j-1] # Nucleus mRMA level at before this stage (T-1), in Cancer Cell case 
+    
+    temp_Level_nec= (temp_Level_nec_old+ alpha) / (Exp_N_C*Deg_N_C); # Current mRNA level in Neucleus in cancer cell
+    x[6,j]= temp_Level_nec;
+    
+    temp_level_cyto_Cancer_old= x[5,j-1];  # get mRNA level at previous stage in Cytoplasm
+    x[5,j] = (temp_level_cyto_Cancer_old+ Exp_N_C)/Deg_C_C* x[6,j]  # calcuate the new level of mRNA in Cytoplasm
+    
+  }
+}
+a=x[1,]
+b= x[4,]
+c= x[5,]
+plot( b~a , type="b" , bty="l" , xlab="value of a" , ylab="value of b" , col=rgb(0.2,0.4,0.1,0.7) , lwd=3 , pch=17 , ylim=c(1,25) )
+lines(c ~a , col=rgb(0.8,0.4,0.1,0.7) , lwd=3 , pch=19 , type="b" )
+legend("bottomleft", 
+       legend = c("mRNA_cyN", "mRNA_cyC"), 
+       col = c(rgb(0.2,0.4,0.1,0.7), 
+               rgb(0.8,0.4,0.1,0.7)), 
+       pch = c(17,19), 
+       bty = "n", 
+       pt.cex = 2, 
+       cex = 1.2, 
+       text.col = "black", 
+       horiz = F , 
+       inset = c(0.1, 0.1))
